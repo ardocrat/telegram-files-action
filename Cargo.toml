@@ -1,0 +1,14 @@
+[package]
+name = "tg-send-file-action"
+version = "1.0.0"
+authors = ["ardocrat"]
+edition = "2018"
+readme = "README.md"
+repository = "https://github.com/ardocrat/tg-send-file-action"
+license = "MIT"
+description = "GitHub action to send files over Telegram."
+
+[dependencies]
+teloxide = { version = "0.17.0", features = ["full"] }
+tokio = { version = "1.44.0", features = ["rt", "rt-multi-thread", "macros"] }
+reqwest = "0.12.7"

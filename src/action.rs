@@ -1,0 +1,57 @@
+use std::env;
+use std::error::Error;
+use std::path::{Path, PathBuf};
+use std::str::FromStr;
+
+pub struct Action {
+    pub token: String,
+    pub chat_ids: Vec<i64>,
+    pub files: Vec<PathBuf>,
+    pub message: String,
+    pub api_url: String,
+    pub pin: bool
+}
+
+impl Action {
+    pub fn new() -> Result<Self, Box<dyn Error>> {
+        let token = get_env_var("INPUT_TOKEN")?;
+        assert_eq!(token.is_empty(), false);
+
+        let chat_ids: Vec<i64> = get_env_var("INPUT_CHAT_IDS")?
+            .split("\n")
+            .filter(|s| !s.is_empty())
+            .filter(|s| i64::from_str(s).is_ok())
+            .map(|s| i64::from_str(s).unwrap())
+            .collect();
+        assert_eq!(chat_ids.is_empty(), false);
+
+        let files: Vec<PathBuf> = get_env_var("INPUT_FILES")?
+            .split("\n")
+            .filter(|s| !s.is_empty())
+            .map(|s| Path::new(s))
+            .filter(|p| p.exists() && p.is_file())
+            .map(|p| p.to_path_buf())
+            .collect();
+        assert_eq!(files.is_empty(), false);
+
+        let message = get_env_var("INPUT_BODY").unwrap_or("".to_string());
+        let api_url = get_env_var("INPUT_API_URL")
+            .unwrap_or(String::from("https://api.telegram.org"));
+        let pin = get_env_var("INPUT_PIN").ok()
+            .map(|p| p.parse::<bool>().unwrap_or(false))
+            .unwrap_or(false);
+
+        Ok(Action {
+            chat_ids,
+            message,
+            files,
+            token,
+            api_url,
+            pin,
+        })
+    }
+}
+
+fn get_env_var(name: &str) -> Result<String, String> {
+    env::var(name).map_err(|_| format!("Missing required {}", name))
+}

@@ -1,0 +1,38 @@
+name: Telegram Files Action
+description: Send files to Telegram using a bot token
+author: ardocrat
+
+inputs:
+  token:
+    description: 'Your Telegram bot token'
+    required: true
+
+  chat-ids:
+    description: 'List of chat IDs, one chat ID per line'
+    required: true
+
+  body:
+    description: 'The message body'
+    required: false
+
+  files:
+    description: 'The list of file paths to upload, one file per line'
+    required: true
+
+  pin:
+    description: 'Pin message to the chat'
+    required: false
+
+  api-url:
+    description:
+      'The Telegram Bot API URL to use'
+    required: false
+    default: 'https://api.telegram.org'
+
+branding:
+  icon: 'upload-cloud'
+  color: 'blue'
+
+runs:
+  using: "docker"
+  image: "docker://ghcr.io/ardocrat/tg-send-file-action:latest"
