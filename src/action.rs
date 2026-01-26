@@ -15,7 +15,7 @@ pub struct Action {
 impl Action {
     pub fn new() -> Result<Self, Box<dyn Error>> {
         let token = get_env_var("INPUT_TOKEN")?;
-        assert_eq!(token.is_empty(), false);
+        assert_eq!(token.is_empty(), false, "Invalid token");
 
         let chat_ids: Vec<i64> = get_env_var("INPUT_CHAT_IDS")?
             .split("\n")
@@ -23,7 +23,7 @@ impl Action {
             .filter(|s| i64::from_str(s).is_ok())
             .map(|s| i64::from_str(s).unwrap())
             .collect();
-        assert_eq!(chat_ids.is_empty(), false);
+        assert_eq!(chat_ids.is_empty(), false, "Chat IDs cannot be empty");
 
         let files: Vec<PathBuf> = get_env_var("INPUT_FILES")?
             .split("\n")
@@ -32,7 +32,7 @@ impl Action {
             .filter(|p| p.exists() && p.is_file())
             .map(|p| p.to_path_buf())
             .collect();
-        assert_eq!(files.is_empty(), false);
+        assert_eq!(files.is_empty(), false, "Files cannot be empty");
 
         let message = get_env_var("INPUT_BODY").unwrap_or("".to_string());
         let api_url = get_env_var("INPUT_API_URL")

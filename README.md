@@ -10,7 +10,7 @@ through Telegram messages.
 
 **Required** Bot API token.
 
-### `chat-ids`
+### `chat_ids`
 
 **Required** Chat IDs of the recepients.
 
@@ -22,7 +22,7 @@ through Telegram messages.
 
 **Optional** The message to send along with the files.
 
-### `api-url`
+### `api_url`
 
 **Optional** Custom Bot API URL.
 
@@ -57,7 +57,7 @@ jobs:
       uses: ardocrat/tg-send-file-action
       with:
         token: ${{ secrets.BOT_TOKEN }}
-        chat-ids: |
+        chat_ids: |
           -1234567890
           -0987654321
         files: |
