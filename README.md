@@ -12,7 +12,7 @@ through Telegram messages.
 
 ### `chat_ids`
 
-**Required** Chat IDs of the recepients.
+**Required** Chat IDs of the recipients.
 
 ### `files`
 
@@ -67,7 +67,7 @@ jobs:
         pin: true
 ```
 
-Make sure the actual values of `chat-id` and `files` inputs. Also, remember to
+Make sure the actual values of `chat_ids` and `files` inputs. Also, remember to
 set `token` in your repository's secrets.
 
 This README provides a basic overview of your GitHub Action, how to use it, and
