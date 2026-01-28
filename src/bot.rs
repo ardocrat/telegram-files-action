@@ -32,7 +32,7 @@ impl TelegramBot {
                     InputMedia::Document(
                         InputMediaDocument::new(InputFile::file(path))
                             .caption(message.clone())
-                            .parse_mode(ParseMode::MarkdownV2)
+                            .parse_mode(ParseMode::Html)
                     )
                 } else {
                     InputMedia::Document(
