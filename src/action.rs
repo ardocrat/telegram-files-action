@@ -34,8 +34,10 @@ impl Action {
             .collect();
         assert_eq!(files.is_empty(), false, "Files cannot be empty");
 
-        let message = get_env_var("INPUT_BODY").unwrap_or("".to_string());
-        let api_url = get_env_var("INPUT_API_URL")
+        let message = get_env_var("INPUT_BODY").ok()
+            .unwrap_or("".to_string());
+        let api_url = get_env_var("INPUT_API_URL").ok()
+            .filter(|s| !s.is_empty())
             .unwrap_or(String::from("https://api.telegram.org"));
         let pin = get_env_var("INPUT_PIN").ok()
             .map(|p| p.parse::<bool>().unwrap_or(false))
