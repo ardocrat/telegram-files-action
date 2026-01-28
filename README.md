@@ -54,7 +54,7 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Send files to Telegram
-      uses: ardocrat/telegram-send-file-action
+      uses: ardocrat/telegram-files-action
       with:
         token: ${{ secrets.BOT_TOKEN }}
         chat_ids: |
