@@ -2359,6 +2359,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "20f34339676cdcab560c9a82300c4c2581f68b9369aedf0fae86f2ff9565ff3e"
 
 [[package]]
+name = "telegram-send-file-action"
+version = "1.0.0"
+dependencies = [
+ "reqwest",
+ "teloxide",
+ "tokio",
+]
+
+[[package]]
 name = "teloxide"
 version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2449,15 +2458,6 @@ dependencies = [
  "once_cell",
  "rustix",
  "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "tg-send-file-action"
-version = "1.0.0"
-dependencies = [
- "reqwest",
- "teloxide",
- "tokio",
 ]
 
 [[package]]

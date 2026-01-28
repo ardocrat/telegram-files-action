@@ -35,4 +35,4 @@ branding:
 
 runs:
   using: "docker"
-  image: "docker://ghcr.io/ardocrat/tg-send-file-action:latest"
+  image: "docker://ghcr.io/ardocrat/telegram-send-file-action:latest"
