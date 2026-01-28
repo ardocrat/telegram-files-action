@@ -13,6 +13,6 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /app/target/release/tg-send-file-action /tg-send-file-action
+COPY --from=builder /app/target/release/telegram-send-file-action /telegram-send-file-action
 
-ENTRYPOINT ["/tg-send-file-action"]
+ENTRYPOINT ["/telegram-send-file-action"]
