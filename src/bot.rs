@@ -30,9 +30,11 @@ impl TelegramBot {
         for chat_id in &chat_ids {
             let input_media: Vec<InputMedia> = files.iter().enumerate().map(|(index, path)| {
                 if index == files.len() - 1 {
+                    let msg = escape(message.as_str());
+                    println!("Send message: {}", msg);
                     InputMedia::Document(
                         InputMediaDocument::new(InputFile::file(path))
-                            .caption(escape(message.as_str()))
+                            .caption(msg)
                             .parse_mode(ParseMode::Html)
                     )
                 } else {
