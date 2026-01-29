@@ -5,6 +5,7 @@ use std::time::Duration;
 use teloxide::{net, Bot};
 use teloxide::prelude::{Request, Requester};
 use teloxide::types::{ChatId, InputFile, InputMedia, InputMediaDocument, ParseMode};
+use teloxide::utils::html::escape;
 
 pub struct TelegramBot {
     pub bot: Bot,
@@ -31,7 +32,7 @@ impl TelegramBot {
                 if index == files.len() - 1 {
                     InputMedia::Document(
                         InputMediaDocument::new(InputFile::file(path))
-                            .caption(message.clone())
+                            .caption(escape(message.as_str()))
                             .parse_mode(ParseMode::Html)
                     )
                 } else {
