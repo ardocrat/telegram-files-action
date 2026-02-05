@@ -51,10 +51,7 @@ impl TelegramBot {
                     let id = res[0].id;
                     msg = res;
                     if pin {
-                        self.bot
-                            .pin_chat_message(ChatId(*chat_id), id)
-                            .send()
-                            .await?;
+                        self.pin_chat_message(chat_id, id).await?;
                     }
                 }
             } else {
@@ -64,21 +61,25 @@ impl TelegramBot {
                     if ids.is_empty() {
                         continue;
                     }
-                    let last_id = ids[ids.len() - 1];
-                    self.bot
+                    let res = self.bot
                         .copy_messages(ChatId(*chat_id), ChatId(chat_ids[0]), ids)
                         .send()
                         .await?;
                     if pin {
-                        self.bot
-                            .pin_chat_message(ChatId(*chat_id), last_id)
-                            .send()
-                            .await?;
+                        self.pin_chat_message(chat_id, res[0]).await?;
                     }
                 }
             }
         }
+        Ok(())
+    }
 
+    async fn pin_chat_message(&self, chat_id: &i64, msg_id: MessageId)
+        -> Result<(), Box<dyn Error>> {
+        self.bot
+            .pin_chat_message(ChatId(*chat_id), msg_id)
+            .send()
+            .await?;
         Ok(())
     }
 }
