@@ -5,6 +5,7 @@ use std::time::Duration;
 use teloxide::{net, Bot};
 use teloxide::prelude::{Request, Requester};
 use teloxide::types::{ChatId, InputFile, InputMedia, InputMediaDocument, Message, MessageId, ParseMode};
+use tokio::time::sleep;
 
 pub struct TelegramBot {
     pub bot: Bot,
@@ -48,6 +49,7 @@ impl TelegramBot {
                     .send()
                     .await?;
                 if pin && !res.is_empty() {
+                    sleep(Duration::from_secs(30)).await;
                     let id = res[res.len() - 1].id;
                     self.bot
                         .pin_chat_message(ChatId(*chat_id), id)
@@ -56,12 +58,14 @@ impl TelegramBot {
                 }
                 message_ids = res.iter().map(|m| m.id).collect::<Vec<MessageId>>();
             } else {
+                sleep(Duration::from_secs(30)).await;
                 // Repost and pin message from 1st chat.
                 let res: Vec<MessageId> = self.bot
                     .copy_messages(ChatId(*chat_id), ChatId(chat_ids[0]), message_ids.clone())
                     .send()
                     .await?;
                 if pin && !res.is_empty() {
+                    sleep(Duration::from_secs(30)).await;
                     let id = res[res.len() - 1];
                     self.bot
                         .pin_chat_message(ChatId(*chat_id), id)
