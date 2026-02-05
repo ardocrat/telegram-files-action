@@ -30,6 +30,10 @@ through Telegram messages.
 
 **Optional** Pin chat message.
 
+### `delay`
+
+**Optional** Delay for requests to Bot API server, default to 5 seconds.
+
 ## Outputs
 
 None
