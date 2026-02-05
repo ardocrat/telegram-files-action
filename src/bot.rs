@@ -26,26 +26,50 @@ impl TelegramBot {
         chat_ids: Vec<i64>,
         pin: bool,
     ) -> Result<(), Box<dyn Error>> {
-        for chat_id in &chat_ids {
-            let input_media: Vec<InputMedia> = files.iter().enumerate().map(|(index, path)| {
-                if index == files.len() - 1 {
-                    InputMedia::Document(
-                        InputMediaDocument::new(InputFile::file(path))
-                            .caption(message.as_str())
-                            .parse_mode(ParseMode::Html)
-                    )
-                } else {
-                    InputMedia::Document(
-                        InputMediaDocument::new(InputFile::file(path))
-                    )
-                }
-            }).collect();
-            let res = self.bot.send_media_group(ChatId(chat_id.clone()), input_media).send().await?;
-            // Pin message if non-empty.
-            if !res.is_empty() {
-                let message_id = res.get(res.len() - 1).unwrap().id;
+        let mut msg = None;
+        for (num, chat_id) in chat_ids.iter().enumerate() {
+            // Repost and pin message from 1st chat.
+            if let Some(m) = &msg {
+                self.bot
+                    .copy_message(ChatId(*chat_id), ChatId(chat_ids[0]), m.id)
+                    .send()
+                    .await?;
                 if pin {
-                    self.bot.pin_chat_message(ChatId(*chat_id), message_id).send().await?;
+                    self.bot
+                        .pin_chat_message(ChatId(*chat_id), m.id)
+                        .send()
+                        .await?;
+                }
+            }
+
+            // Upload files to 1st chat.
+            if num == 0 {
+                let input_media: Vec<InputMedia> = files.iter().enumerate().map(|(index, path)| {
+                    if index == files.len() - 1 {
+                        InputMedia::Document(
+                            InputMediaDocument::new(InputFile::file(path))
+                                .caption(message.as_str())
+                                .parse_mode(ParseMode::Html)
+                        )
+                    } else {
+                        InputMedia::Document(
+                            InputMediaDocument::new(InputFile::file(path))
+                        )
+                    }
+                }).collect();
+                let res = self.bot
+                    .send_media_group(ChatId(chat_id.clone()), input_media)
+                    .send()
+                    .await?;
+                if !res.is_empty() {
+                    let m = res[0].clone();
+                    msg = Some(m);
+                    if pin {
+                        self.bot
+                            .pin_chat_message(ChatId(*chat_id), m.id)
+                            .send()
+                            .await?;
+                    }
                 }
             }
         }
