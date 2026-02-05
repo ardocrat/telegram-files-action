@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use teloxide::{net, Bot};
 use teloxide::prelude::{Request, Requester};
-use teloxide::types::{ChatId, InputFile, InputMedia, InputMediaDocument, Message, ParseMode};
+use teloxide::types::{ChatId, InputFile, InputMedia, InputMediaDocument, Message, MessageId, ParseMode};
 
 pub struct TelegramBot {
     pub bot: Bot,
@@ -26,22 +26,8 @@ impl TelegramBot {
         chat_ids: Vec<i64>,
         pin: bool,
     ) -> Result<(), Box<dyn Error>> {
-        let mut msg: Option<Message> = None;
+        let mut msg: Vec<Message> = vec![];
         for (num, chat_id) in chat_ids.iter().enumerate() {
-            // Repost and pin message from 1st chat.
-            if let Some(m) = &msg {
-                self.bot
-                    .copy_message(ChatId(*chat_id), ChatId(chat_ids[0]), m.id)
-                    .send()
-                    .await?;
-                if pin {
-                    self.bot
-                        .pin_chat_message(ChatId(*chat_id), m.id)
-                        .send()
-                        .await?;
-                }
-            }
-
             // Upload files to 1st chat.
             if num == 0 {
                 let input_media: Vec<InputMedia> = files.iter().enumerate().map(|(index, path)| {
@@ -62,12 +48,30 @@ impl TelegramBot {
                     .send()
                     .await?;
                 if !res.is_empty() {
-                    let m = res[0].clone();
-                    let id = m.id;
-                    msg = Some(m);
+                    let id = res[0].id;
+                    msg = res;
                     if pin {
                         self.bot
                             .pin_chat_message(ChatId(*chat_id), id)
+                            .send()
+                            .await?;
+                    }
+                }
+            } else {
+                // Repost and pin message from 1st chat.
+                if !msg.is_empty() {
+                    let ids: Vec<MessageId> = msg.iter().map(|m| m.id).collect::<Vec<MessageId>>();
+                    if ids.is_empty() {
+                        continue;
+                    }
+                    let last_id = ids[ids.len() - 1];
+                    self.bot
+                        .copy_messages(ChatId(*chat_id), ChatId(chat_ids[0]), ids)
+                        .send()
+                        .await?;
+                    if pin {
+                        self.bot
+                            .pin_chat_message(ChatId(*chat_id), last_id)
                             .send()
                             .await?;
                     }
