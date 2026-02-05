@@ -63,10 +63,11 @@ impl TelegramBot {
                     .await?;
                 if !res.is_empty() {
                     let m = res[0].clone();
+                    let id = m.id;
                     msg = Some(m);
                     if pin {
                         self.bot
-                            .pin_chat_message(ChatId(*chat_id), m.id)
+                            .pin_chat_message(ChatId(*chat_id), id)
                             .send()
                             .await?;
                     }
