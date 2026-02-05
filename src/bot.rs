@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use teloxide::{net, Bot};
 use teloxide::prelude::{Request, Requester};
-use teloxide::types::{ChatId, InputFile, InputMedia, InputMediaDocument, ParseMode};
+use teloxide::types::{ChatId, InputFile, InputMedia, InputMediaDocument, Message, ParseMode};
 
 pub struct TelegramBot {
     pub bot: Bot,
@@ -26,7 +26,7 @@ impl TelegramBot {
         chat_ids: Vec<i64>,
         pin: bool,
     ) -> Result<(), Box<dyn Error>> {
-        let mut msg = None;
+        let mut msg: Option<Message> = None;
         for (num, chat_id) in chat_ids.iter().enumerate() {
             // Repost and pin message from 1st chat.
             if let Some(m) = &msg {
@@ -57,7 +57,7 @@ impl TelegramBot {
                         )
                     }
                 }).collect();
-                let res = self.bot
+                let res: Vec<Message> = self.bot
                     .send_media_group(ChatId(chat_id.clone()), input_media)
                     .send()
                     .await?;
