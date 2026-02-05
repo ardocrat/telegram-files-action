@@ -26,7 +26,7 @@ impl TelegramBot {
         chat_ids: Vec<i64>,
         pin: bool,
     ) -> Result<(), Box<dyn Error>> {
-        let mut msg: Vec<Message> = vec![];
+        let mut message_ids: Vec<MessageId> = vec![];
         for (num, chat_id) in chat_ids.iter().enumerate() {
             // Upload files to 1st chat.
             if num == 0 {
@@ -47,35 +47,27 @@ impl TelegramBot {
                     .send_media_group(ChatId(chat_id.clone()), input_media)
                     .send()
                     .await?;
-                if !res.is_empty() {
-                    let id = res[0].id;
-                    msg = res;
-                    if pin {
-                        self.pin_chat_message(chat_id, id).await?;
-                    }
+                if pin && !res.is_empty() {
+                    let id = res[res.len() - 1].id;
+                    self.pin_message(chat_id, id).await?;
                 }
+                message_ids = res.iter().map(|m| m.id).collect::<Vec<MessageId>>();
             } else {
                 // Repost and pin message from 1st chat.
-                if !msg.is_empty() {
-                    let ids: Vec<MessageId> = msg.iter().map(|m| m.id).collect::<Vec<MessageId>>();
-                    if ids.is_empty() {
-                        continue;
-                    }
-                    let res = self.bot
-                        .copy_messages(ChatId(*chat_id), ChatId(chat_ids[0]), ids)
-                        .send()
-                        .await?;
-                    if pin {
-                        self.pin_chat_message(chat_id, res[0]).await?;
-                    }
+                let res: Vec<MessageId> = self.bot
+                    .copy_messages(ChatId(*chat_id), ChatId(chat_ids[0]), message_ids.clone())
+                    .send()
+                    .await?;
+                if pin && !res.is_empty() {
+                    let id = res[res.len() - 1];
+                    self.pin_message(chat_id, id).await?;
                 }
             }
         }
         Ok(())
     }
 
-    async fn pin_chat_message(&self, chat_id: &i64, msg_id: MessageId)
-        -> Result<(), Box<dyn Error>> {
+    async fn pin_message(&self, chat_id: &i64, msg_id: MessageId) -> Result<(), Box<dyn Error>> {
         self.bot
             .pin_chat_message(ChatId(*chat_id), msg_id)
             .send()
