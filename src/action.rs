@@ -2,6 +2,7 @@ use std::env;
 use std::error::Error;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
+use std::time::Duration;
 
 pub struct Action {
     pub token: String,
@@ -9,7 +10,8 @@ pub struct Action {
     pub files: Vec<PathBuf>,
     pub message: String,
     pub api_url: String,
-    pub pin: bool
+    pub pin: bool,
+    pub delay: Duration,
 }
 
 impl Action {
@@ -42,6 +44,10 @@ impl Action {
         let pin = get_env_var("INPUT_PIN").ok()
             .map(|p| p.parse::<bool>().unwrap_or(false))
             .unwrap_or(false);
+        let delay = get_env_var("INPUT_DELAY").ok()
+            .map(|p| p.parse::<u64>().unwrap_or(5))
+            .map(|d| Duration::from_secs(d))
+            .unwrap_or(Duration::from_secs(5));
 
         Ok(Action {
             chat_ids,
@@ -50,6 +56,7 @@ impl Action {
             token,
             api_url,
             pin,
+            delay,
         })
     }
 }

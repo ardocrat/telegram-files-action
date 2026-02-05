@@ -9,14 +9,16 @@ use tokio::time::sleep;
 
 pub struct TelegramBot {
     pub bot: Bot,
+    delay: Duration,
 }
 
 impl TelegramBot {
-    pub fn new(token: String, url: String) -> Result<TelegramBot, Box<dyn Error>> {
+    pub fn new(token: String, url: String, delay: Duration) -> Result<TelegramBot, Box<dyn Error>> {
         let client = net::default_reqwest_settings()
             .timeout(Duration::from_mins(60)).build()?;
         Ok(TelegramBot {
             bot: Bot::with_client(token, client).set_api_url(reqwest::Url::parse(url.as_str())?),
+            delay,
         })
     }
 
@@ -49,7 +51,7 @@ impl TelegramBot {
                     .send()
                     .await?;
                 if pin && !res.is_empty() {
-                    sleep(Duration::from_secs(30)).await;
+                    sleep(self.delay).await;
                     let id = res[res.len() - 1].id;
                     self.bot
                         .pin_chat_message(ChatId(*chat_id), id)
@@ -58,14 +60,14 @@ impl TelegramBot {
                 }
                 message_ids = res.iter().map(|m| m.id).collect::<Vec<MessageId>>();
             } else {
-                sleep(Duration::from_secs(30)).await;
+                sleep(self.delay).await;
                 // Repost and pin message from 1st chat.
                 let res: Vec<MessageId> = self.bot
                     .copy_messages(ChatId(*chat_id), ChatId(chat_ids[0]), message_ids.clone())
                     .send()
                     .await?;
                 if pin && !res.is_empty() {
-                    sleep(Duration::from_secs(30)).await;
+                    sleep(self.delay).await;
                     let id = res[res.len() - 1];
                     self.bot
                         .pin_chat_message(ChatId(*chat_id), id)
