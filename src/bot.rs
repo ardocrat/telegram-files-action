@@ -49,7 +49,10 @@ impl TelegramBot {
                     .await?;
                 if pin && !res.is_empty() {
                     let id = res[res.len() - 1].id;
-                    self.pin_message(chat_id, id).await?;
+                    self.bot
+                        .pin_chat_message(ChatId(*chat_id), id)
+                        .send()
+                        .await?;
                 }
                 message_ids = res.iter().map(|m| m.id).collect::<Vec<MessageId>>();
             } else {
@@ -60,18 +63,13 @@ impl TelegramBot {
                     .await?;
                 if pin && !res.is_empty() {
                     let id = res[res.len() - 1];
-                    self.pin_message(chat_id, id).await?;
+                    self.bot
+                        .pin_chat_message(ChatId(*chat_id), id)
+                        .send()
+                        .await?;
                 }
             }
         }
-        Ok(())
-    }
-
-    async fn pin_message(&self, chat_id: &i64, msg_id: MessageId) -> Result<(), Box<dyn Error>> {
-        self.bot
-            .pin_chat_message(ChatId(*chat_id), msg_id)
-            .send()
-            .await?;
         Ok(())
     }
 }
