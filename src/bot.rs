@@ -3,9 +3,10 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use teloxide::{net, Bot};
-use teloxide::prelude::{Request, Requester};
+use teloxide::prelude::{Request, Requester, ResponseResult};
 use teloxide::types::{ChatId, InputFile, InputMedia, InputMediaDocument, Message, MessageId, ParseMode};
 use tokio::time::sleep;
+use log::info;
 
 pub struct TelegramBot {
     pub bot: Bot,
@@ -31,48 +32,70 @@ impl TelegramBot {
     ) -> Result<(), Box<dyn Error>> {
         let mut message_ids: Vec<MessageId> = vec![];
         for (num, chat_id) in chat_ids.iter().enumerate() {
+            let mut sent_msg_id: Option<MessageId> = None;
             // Upload files to 1st chat.
             if num == 0 {
-                let input_media: Vec<InputMedia> = files.iter().enumerate().map(|(index, path)| {
-                    if index == files.len() - 1 {
-                        InputMedia::Document(
-                            InputMediaDocument::new(InputFile::file(path))
-                                .caption(message.as_str())
-                                .parse_mode(ParseMode::Html)
-                        )
+                while sent_msg_id.is_none() {
+                    let media: Vec<InputMedia> = files.iter().enumerate().map(|(index, path)| {
+                        if index == files.len() - 1 {
+                            InputMedia::Document(
+                                InputMediaDocument::new(InputFile::file(path))
+                                    .caption(message.as_str())
+                                    .parse_mode(ParseMode::Html)
+                            )
+                        } else {
+                            InputMedia::Document(
+                                InputMediaDocument::new(InputFile::file(path))
+                            )
+                        }
+                    }).collect();
+                    if let Ok(res) = self.bot
+                        .send_media_group(ChatId(chat_id.clone()), media)
+                        .send()
+                        .await {
+                        if !res.is_empty() {
+                            let id = res[res.len() - 1].id;
+                            sent_msg_id = Some(id);
+                            message_ids = res.iter().map(|m| m.id).collect::<Vec<MessageId>>();
+                            info!("Sent message {:?} to {:?}", id, chat_id);
+                        }
+                        break;
                     } else {
-                        InputMedia::Document(
-                            InputMediaDocument::new(InputFile::file(path))
-                        )
+                        info!("Error sending message to {:?}, trying again...", chat_id);
                     }
-                }).collect();
-                let res: Vec<Message> = self.bot
-                    .send_media_group(ChatId(chat_id.clone()), input_media)
-                    .send()
-                    .await?;
-                if pin && !res.is_empty() {
-                    sleep(self.delay).await;
-                    let id = res[res.len() - 1].id;
-                    self.bot
-                        .pin_chat_message(ChatId(*chat_id), id)
-                        .send()
-                        .await?;
                 }
-                message_ids = res.iter().map(|m| m.id).collect::<Vec<MessageId>>();
+                if !pin {
+                    continue;
+                }
             } else {
-                sleep(self.delay).await;
-                // Repost and pin message from 1st chat.
-                let res: Vec<MessageId> = self.bot
-                    .copy_messages(ChatId(*chat_id), ChatId(chat_ids[0]), message_ids.clone())
-                    .send()
-                    .await?;
-                if pin && !res.is_empty() {
+                // Repost message from 1st chat.
+                while sent_msg_id.is_none() {
                     sleep(self.delay).await;
-                    let id = res[res.len() - 1];
-                    self.bot
-                        .pin_chat_message(ChatId(*chat_id), id)
+                    if let Ok(res) = self.bot
+                        .copy_messages(ChatId(*chat_id), ChatId(chat_ids[0]), message_ids.clone())
                         .send()
-                        .await?;
+                        .await {
+                        if !res.is_empty() {
+                            let id = res[res.len() - 1];
+                            sent_msg_id = Some(id);
+                            info!("Sent message {:?} to {:?}", id, chat_id);
+                        }
+                        break;
+                    } else {
+                        info!("Error sending message to {:?}, trying again...", chat_id);
+                    }
+                }
+            }
+            // Pin message.
+            if let Some(id) = sent_msg_id {
+                loop {
+                    sleep(self.delay).await;
+                    if self.bot.pin_chat_message(ChatId(*chat_id), id).send().await.is_ok() {
+                        info!("Pinned message {:?} to {:?}", id, chat_id);
+                        break;
+                    } else {
+                        info!("Error pin message {:?} to {:?}, trying again...", id, chat_id);
+                    }
                 }
             }
         }
