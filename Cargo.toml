@@ -12,4 +12,3 @@ description = "GitHub action to send files over Telegram."
 teloxide = { version = "0.17.0", features = ["full"] }
 tokio = { version = "1.44.0", features = ["rt", "rt-multi-thread", "macros"] }
 reqwest = "0.12.7"
-log = "0.4.29"
